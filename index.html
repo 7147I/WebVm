@@ -679,7 +679,7 @@ const DEFAULT_APPS = [
   { id: 'calc', title: 'Calculator', icon: svgIcon('<rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/>') },
   { id: 'notepad', title: 'Notepad', icon: svgIcon('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>') },
   { id: 'notes', title: 'Sticky Notes', icon: svgIcon('<path d="M3 3h13l5 5v13H3z"/><path d="M16 3v5h5"/>', '#ffd54f') },
-  { id: 'discord', title: 'Discord', icon: `<svg viewBox="0 0 24 24" fill="#5865F2"><path d="M20 6.5a17 17 0 0 0-4.3-1.3l-.2.4a13 13 0 0 1 3.8 1.9 15 15 0 0 0-15 0 13 13 0 0 1 3.8-1.9l-.2-.4A17 17 0 0 0 4 6.5C1.8 10 1 13.4 1.3 16.7a17 17 0 0 0 5.2 2.6l.7-1.1a10 10 0 0 1-1.6-.8l.4-.3a12 12 0 0 0 10 0l.4.3a10 10 0 0 1-1.6.8l.7 1.1a17 17 0 0 0 5.2-2.6C21 13.4 20.2 10 18 6.5zM8.7 14.9c-.7 0-1.3-.7-1.3-1.5s.6-1.5 1.3-1.5 1.4.7 1.3 1.5c0 .8-.6 1.5-1.3 1.5zm6.6 0c-.7 0-1.3-.7-1.3-1.5s.6-1.5 1.3-1.5 1.3.7 1.3 1.5-.6 1.5-1.3 1.5z"/></svg>` },
+  { id: 'discord', title: 'Discord', desktopHidden: true, icon: `<svg viewBox="0 0 24 24" fill="#5865F2"><path d="M20 6.5a17 17 0 0 0-4.3-1.3l-.2.4a13 13 0 0 1 3.8 1.9 15 15 0 0 0-15 0 13 13 0 0 1 3.8-1.9l-.2-.4A17 17 0 0 0 4 6.5C1.8 10 1 13.4 1.3 16.7a17 17 0 0 0 5.2 2.6l.7-1.1a10 10 0 0 1-1.6-.8l.4-.3a12 12 0 0 0 10 0l.4.3a10 10 0 0 1-1.6.8l.7 1.1a17 17 0 0 0 5.2-2.6C21 13.4 20.2 10 18 6.5zM8.7 14.9c-.7 0-1.3-.7-1.3-1.5s.6-1.5 1.3-1.5 1.4.7 1.3 1.5c0 .8-.6 1.5-1.3 1.5zm6.6 0c-.7 0-1.3-.7-1.3-1.5s.6-1.5 1.3-1.5 1.3.7 1.3 1.5-.6 1.5-1.3 1.5z"/></svg>` },
   { id: 'clock', title: 'Clock', icon: svgIcon('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 3.5"/>') },
   { id: 'minesweeper', title: 'Minesweeper', icon: svgIcon('<circle cx="12" cy="12" r="9"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" />', '#ff9f43') },
   { id: 'snipping', title: 'Snipping Tool', icon: svgIcon('<rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 2"/>') },
@@ -707,9 +707,10 @@ function getApps() {
 function buildDesktop() {
   const desktop = document.getElementById('desktop-container');
   const apps = getApps().filter(a => !a.hidden);
+  const desktopApps = apps.filter(a => !a.desktopHidden);
   desktop.innerHTML = `
     <div class="desktop-icons" oncontextmenu="event.preventDefault()">
-      ${apps.map(a => `<div class="desktop-icon" ondblclick="openApp('${a.id}')" oncontextmenu="event.stopPropagation(); showContextMenu(event.clientX, event.clientY, [{label: 'Open', action: () => openApp('${a.id}')}])">${a.icon}<span>${a.title}</span></div>`).join('')}
+      ${desktopApps.map(a => `<div class="desktop-icon" ondblclick="openApp('${a.id}')" oncontextmenu="event.stopPropagation(); showContextMenu(event.clientX, event.clientY, [{label: 'Open', action: () => openApp('${a.id}')}])">${a.icon}<span>${a.title}</span></div>`).join('')}
     </div>
     
     <div class="taskbar" id="taskbar-el">
@@ -997,6 +998,7 @@ function getAppContent(appId) {
         <div class="explorer-toolbar">
           <button class="explorer-toolbtn" onclick="explorerUp()">⬆ Up</button>
           <button class="explorer-toolbtn" onclick="explorerNewFile()">＋ New File</button>
+          <button class="explorer-toolbtn" onclick="explorerNewBatchFile()">＋ New Batch File</button>
           <button class="explorer-toolbtn" onclick="VFS.mkdir(VFS.path.join('\\\\')+'\\\\'+(prompt('Folder name:')||'New Folder')); explorerNav(VFS.path.join('\\\\'));">＋ New Folder</button>
           <button class="explorer-toolbtn" onclick="document.getElementById('vfs-upload-input').click()">⬆ Upload</button>
           <button class="explorer-toolbtn" onclick="explorerPaste()">📋 Paste</button>
@@ -2035,7 +2037,7 @@ function processCommand(input) {
   rmdir &lt;name&gt;      remove an empty folder
   type / cat &lt;f&gt;    print a file's contents
   echo &lt;text&gt;       print text (supports &gt; file and &gt;&gt; file redirection)
-  del / rm &lt;f&gt;      delete a file (moves to Recycle Bin)
+  del / rm &lt;f&gt;      delete a file, supports * wildcards (moves to Recycle Bin)
   ren &lt;old&gt; &lt;new&gt;   rename a file or folder
   notepad [file]    open Notepad, optionally with a file
   tree              show folder structure
@@ -2046,7 +2048,10 @@ function processCommand(input) {
   sysinfo           show system information
   tasklist          list running apps
   taskkill &lt;app&gt;    close a running app
-  start &lt;app&gt;       launch an app (e.g. start calc)
+  start ["title"] &lt;app&gt;  launch an app in its own window (e.g. start calc)
+  timeout /t &lt;secs&gt; pause for N seconds (real delay, capped at 10s)
+  findstr &lt;term&gt; &lt;f&gt; search a file's contents (alias of grep)
+  more &lt;f&gt;          print a file's contents (alias of type)
   date / time       show current date/time
   ver               show OS version
   history [-c]      show or clear command history
@@ -2070,8 +2075,10 @@ Type 'help admin' if you think you know what you're doing.`); break;
     }
     case 'cls': case 'clear': document.getElementById('terminal-output').innerHTML = ''; break;
     case 'dir': case 'ls': {
-      const items = VFS.list(VFS.path.join('\\'));
-      if (!items || items.length === 0) { addLine('Directory is empty.'); break; }
+      let items = VFS.list(VFS.path.join('\\'));
+      if (!items) { addLine('Directory is empty.'); break; }
+      if (args[0] && args[0].includes('*')) { const re = globToRegex(args[0]); items = items.filter(it => re.test(it.name)); }
+      if (items.length === 0) { addLine('Directory is empty.'); break; }
       addLine(`Directory of ${VFS.path.join('\\')}\n\n` + items.map(it => `  ${it.isDir ? '<DIR>' : '     '}  ${it.name}`).join('\n'));
       break;
     }
@@ -2109,7 +2116,15 @@ Type 'help admin' if you think you know what you're doing.`); break;
       break;
     }
     case 'del': case 'rm': {
-      if (!args[0]) { addLine('Usage: del <file>'); break; }
+      if (!args[0]) { addLine('Usage: del <file> (supports * wildcards)'); break; }
+      if (args[0].includes('*')) {
+        const re = globToRegex(args[0]);
+        const items = (VFS.list(VFS.path.join('\\')) || []).filter(it => !it.isDir && re.test(it.name));
+        if (items.length === 0) { addLine('No matching files.'); break; }
+        items.forEach(it => VFS.del(VFS.path.join('\\') + '\\' + it.name, true));
+        addLine(`${items.length} file(s) moved to Recycle Bin.`);
+        break;
+      }
       if (!VFS.exists(VFS.path.join('\\') + '\\' + args[0])) { addLine(`Cannot find ${args[0]}`); break; }
       VFS.del(VFS.path.join('\\') + '\\' + args[0], true);
       addLine(`${args[0]} moved to Recycle Bin.`);
@@ -2145,7 +2160,14 @@ Type 'help admin' if you think you know what you're doing.`); break;
       if (found) { closeWindow(found); addLine(`Closed ${found}`); } else addLine('No matching window.');
       break;
     }
-    case 'start': if (!args[0]) { addLine('Usage: start <app>'); break; } { const found = getApps().find(a => a.id === args[0].toLowerCase() || a.title.toLowerCase() === args[0].toLowerCase()); if (found) { openApp(found.id); addLine(`Starting ${found.title}...`); } else addLine('Unknown app: ' + args[0]); } break;
+    case 'start': {
+      if (!args[0]) { addLine('Usage: start ["title"] <app>'); break; }
+      const apps = getApps();
+      let found = apps.find(a => a.id === args[0].toLowerCase() || a.title.toLowerCase() === args[0].toLowerCase());
+      if (!found && args[1]) found = apps.find(a => a.id === args[1].toLowerCase() || a.title.toLowerCase() === args[1].toLowerCase());
+      if (found) { openApp(found.id); addLine(`Starting ${found.title}...`); } else addLine('Unknown app: ' + (found ? args[1] : args[0]));
+      break;
+    }
     case 'date': addLine(`Current date: ${new Date().toDateString()}`); break;
     case 'time': addLine(`Current time: ${new Date().toLocaleTimeString()}`); break;
     case 'ver': addLine(`WebVM [Version 11.0.22621]`); break;
@@ -2161,17 +2183,34 @@ Type 'help admin' if you think you know what you're doing.`); break;
       addLine(matches.length ? matches.map(m => m.path.join('\\')).join('\n') : 'No matches found.');
       break;
     }
-    case 'grep': {
-      if (!args[0] || !args[1]) { addLine('Usage: grep <term> <file>'); break; }
+    case 'grep': case 'findstr': {
+      if (!args[0] || !args[1]) { addLine(`Usage: ${c} <term> <file>`); break; }
       const content = VFS.read(VFS.path.join('\\') + '\\' + args[1]);
       if (content === null) { addLine(`The system cannot find the file specified: ${args[1]}`); break; }
-      if (content.startsWith('data:')) { addLine('(binary file — cannot grep)'); break; }
+      if (content.startsWith('data:')) { addLine('(binary file — cannot search)'); break; }
       const term = args[0].toLowerCase();
       const hits = content.split('\n').map((l, i) => ({ l, i })).filter(x => x.l.toLowerCase().includes(term));
       addLine(hits.length ? hits.map(h => `${h.i+1}: ${escapeHtml(h.l)}`).join('\n') : 'No matches found.');
       break;
     }
-    case 'copy': {
+    case 'more': {
+      if (!args[0]) { addLine('Usage: more <file>'); break; }
+      const content = VFS.read(VFS.path.join('\\') + '\\' + args[0]);
+      if (content === null) { addLine(`The system cannot find the file specified: ${args[0]}`); break; }
+      addLine(content.startsWith('data:') ? '(binary file)' : escapeHtml(content));
+      break;
+    }
+    case 'vol': addLine(` Volume in drive C is WEBVM\n Volume Serial Number is 1337-C0DE`); break;
+    case 'label': addLine('Volume label (11 characters, ENTER for none)? WEBVM'); break;
+    case 'attrib': addLine(args[0] ? `A            ${VFS.path.join('\\')}\\${args[0]}` : 'Usage: attrib <file>'); break;
+    case 'assoc': addLine('.txt=txtfile\n.bat=batfile\n.exe=exefile\n.js=jsfile\n.html=htmlfile'); break;
+    case 'timeout': {
+      const m = /\/t\s+(\d+)/i.exec(args.join(' ')) || [null, args[0]];
+      const secs = Math.min(parseInt(m[1], 10) || 5, 10);
+      addLine(`Waiting for ${secs} seconds, press a key to continue ...`);
+      break;
+    }
+    case 'copy': case 'xcopy': {
       if (!args[0] || !args[1]) { addLine('Usage: copy <source> <dest>'); break; }
       const content = VFS.read(VFS.path.join('\\') + '\\' + args[0]);
       if (content === null) { addLine(`The system cannot find the file specified: ${args[0]}`); break; }
@@ -2510,6 +2549,17 @@ function explorerNewFile() {
   VFS.write(VFS.path.join('\\') + '\\' + name, '');
   explorerNav(VFS.path.join('\\'));
 }
+function explorerNewBatchFile() {
+  let name = prompt('New batch file name:', 'script.bat');
+  if (!name) return;
+  if (!/\.bat$/i.test(name)) name += '.bat';
+  const template = '@echo off\nset GREETING=Hello from ' + name + '\necho %GREETING%\nstart calc\ntimeout /t 1\nstart notepad\nfor %%i in (one two three) do echo Item: %%i\nif exist readme.txt echo readme.txt is here\n';
+  const fullPath = VFS.path.join('\\') + '\\' + name;
+  VFS.write(fullPath, template);
+  explorerNav(VFS.path.join('\\'));
+  openApp('notepad', { path: fullPath, content: template });
+  toast('Created ' + name + ' — double-click it in Explorer to run it.');
+}
 function explorerNav(path) {
   VFS.path = VFS.resolve(path);
   const main = document.getElementById('explorer-main');
@@ -2534,6 +2584,7 @@ function explorerNav(path) {
       { label: 'Paste', action: () => explorerPaste(), disabled: !vfsClipboard },
       { label: 'New File', action: () => explorerNewFile() },
       { label: 'New Folder', action: () => { const n = prompt('Folder name:', 'New Folder'); if (n) { VFS.mkdir(VFS.path.join('\\') + '\\' + n); explorerNav(VFS.path.join('\\')); } } },
+      { label: 'New Batch File', action: () => explorerNewBatchFile() },
       { label: 'Refresh', action: () => explorerNav(VFS.path.join('\\')) }
     ].filter(it => !it.disabled);
     showContextMenu(e.clientX, e.clientY, menuItems);
@@ -2576,19 +2627,81 @@ function openVFSFile(name) {
 }
 
 // --- Batch (.bat) file execution ---
-function runBatchFile(fullPath, content) {
-  openApp('terminal', { runOnce: true });
-  setTimeout(() => {
-    addLine(`<span style="color:var(--accent-light)">Running ${escapeHtml(fullPath)}...</span>`);
-    const lines = (content || '').split('\n');
-    for (let line of lines) {
-      line = line.trim();
-      if (!line || line.startsWith('::') || /^rem\s/i.test(line) || line.toLowerCase() === 'rem') continue;
-      addLine(`<span style="color:var(--success)">${escapeHtml(VFS.path.join('\\'))}&gt;</span> ${escapeHtml(line)}`);
-      processCommand(line);
+function expandBatchVars(line, params) {
+  line = line.replace(/%(\d)/g, (m, n) => (params && params[n - 1] !== undefined) ? params[n - 1] : '');
+  line = line.replace(/%~?([A-Za-z_][A-Za-z0-9_]*)%/g, (m, v) => envVars[v] !== undefined ? envVars[v] : m);
+  line = line.replace(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (m, v) => envVars[v] !== undefined ? envVars[v] : m);
+  line = line.replace(/\$([A-Za-z_][A-Za-z0-9_]*)/g, (m, v) => envVars[v] !== undefined ? envVars[v] : m);
+  return line;
+}
+function globToRegex(pattern) {
+  return new RegExp('^' + pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.') + '$', 'i');
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+async function runBatchFile(fullPath, content, params, depth) {
+  depth = depth || 0;
+  const isRoot = depth === 0;
+  if (isRoot) openApp('terminal', { runOnce: true });
+  const doRun = async () => {
+    if (isRoot) addLine(`<span style="color:var(--accent-light)">Running ${escapeHtml(fullPath)}...</span>`);
+    const rawLines = (content || '').split('\n').map(l => l.replace(/\r$/, ''));
+    let echoOn = true;
+    const labels = {};
+    rawLines.forEach((l, i) => { const m = /^:([A-Za-z_][\w-]*)\s*$/.exec(l.trim()); if (m) labels[m[1].toLowerCase()] = i; });
+    let i = 0, guard = 0;
+    while (i < rawLines.length) {
+      if (++guard > 5000) { addLine("<span style='color:var(--danger)'>Batch aborted: possible infinite loop.</span>"); break; }
+      let line = rawLines[i].trim(); i++;
+      if (!line) continue;
+      if (/^:/.test(line)) continue; // label definition, no-op
+      if (line.startsWith('::') || /^rem(\s|$)/i.test(line)) continue;
+      let silent = false;
+      if (line.startsWith('@')) { silent = true; line = line.slice(1).trim(); }
+      if (/^echo\s+off$/i.test(line)) { echoOn = false; continue; }
+      if (/^echo\s+on$/i.test(line)) { echoOn = true; continue; }
+      line = expandBatchVars(line, params);
+      if (!silent && echoOn) addLine(`<span style="color:var(--success)">${escapeHtml(VFS.path.join('\\'))}&gt;</span> ${escapeHtml(line)}`);
+
+      // GOTO
+      let m = /^goto\s+:?([A-Za-z_][\w-]*)/i.exec(line);
+      if (m) { const target = labels[m[1].toLowerCase()]; if (target !== undefined) i = target; else addLine(`The system cannot find the batch label specified - ${m[1]}`); continue; }
+      // EXIT
+      if (/^exit(\s*\/b)?(\s|$)/i.test(line)) { break; }
+      // PAUSE
+      if (/^pause\s*$/i.test(line)) { addLine('Press any key to continue . . .'); continue; }
+      // TIMEOUT / PING -n (real async wait, so windows opened before/after feel sequenced)
+      m = /^timeout\s+(?:\/t\s+)?(\d+)/i.exec(line) || /^ping\s+.*-n\s+(\d+)/i.exec(line);
+      if (m) { const secs = Math.min(parseInt(m[1], 10) || 1, 10); addLine(`Waiting ${secs}s...`); await sleep(secs * 1000); continue; }
+      // CALL another batch file
+      m = /^call\s+(\S+)(.*)$/i.exec(line);
+      if (m) {
+        const callArgs = m[2].trim().split(/\s+/).filter(Boolean);
+        const callContent = VFS.read(VFS.path.join('\\') + '\\' + m[1]);
+        if (callContent === null) addLine(`The system cannot find the file specified: ${escapeHtml(m[1])}`);
+        else await runBatchFile(m[1], callContent, callArgs, depth + 1);
+        continue;
+      }
+      // IF EXIST / IF NOT EXIST / IF DEFINED / IF "a"=="b"
+      m = /^if\s+(not\s+)?exist\s+(\S+)\s+(.*)$/i.exec(line);
+      if (m) { const exists = VFS.exists(VFS.path.join('\\') + '\\' + m[2]); const negate = !!m[1]; if (exists !== negate) rawLines.splice(i, 0, m[3]); continue; }
+      m = /^if\s+(not\s+)?defined\s+([A-Za-z_][\w]*)\s+(.*)$/i.exec(line);
+      if (m) { const def = envVars[m[2]] !== undefined; const negate = !!m[1]; if (def !== negate) rawLines.splice(i, 0, m[3]); continue; }
+      m = /^if\s+(not\s+)?"?([^"=]*)"?\s*==\s*"?([^"]*)"?\s+(.*)$/i.exec(line);
+      if (m) { const eq = m[2] === m[3]; const negate = !!m[1]; if (eq !== negate) rawLines.splice(i, 0, m[4]); continue; }
+      // FOR %%v IN (a b c) DO command
+      m = /^for\s+%%?([A-Za-z])\s+in\s+\(([^)]*)\)\s+do\s+(.*)$/i.exec(line);
+      if (m) {
+        const varName = m[1]; const items = m[2].trim().split(/[\s,]+/).filter(Boolean);
+        for (const item of items) { const sub = m[3].replace(new RegExp('%%?' + varName, 'g'), item); processCommand(sub); }
+        continue;
+      }
+      // command chaining: && (run next regardless, no real error state) and ; (Linux-style)
+      const segments = line.split(/\s*&&\s*|\s*;\s*/).filter(Boolean);
+      for (const seg of segments) processCommand(seg);
     }
-    addLine(`<span style="color:var(--accent-light)">Batch file finished.</span>`);
-  }, 200);
+    if (isRoot) addLine(`<span style="color:var(--accent-light)">Batch file finished.</span>`);
+  };
+  if (isRoot) { await sleep(200); await doRun(); } else { await doRun(); }
 }
 
 // --- Simulated .exe launch ---
